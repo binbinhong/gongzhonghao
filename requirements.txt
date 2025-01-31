@@ -1,0 +1,5 @@
+Flask==3.0.0
+newspaper3k==0.2.8
+lxml==4.9.3
+beautifulsoup4==4.12.2
+gunicorn==21.2.0 
