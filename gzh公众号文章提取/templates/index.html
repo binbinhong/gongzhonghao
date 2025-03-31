@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>微信文章提取</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .input-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        input[type="url"] {
+            width: 80%;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .content-container {
+            margin-top: 15px;
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 1.5em;
+            font-weight: bold;
+            flex-grow: 1;
+        }
+        .content {
+            white-space: pre-line;
+            line-height: 1.4;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .content p {
+            margin: 0;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+        .button-group {
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+            padding-left: 10px;
+        }
+        .copy-btn {
+            background-color: #2196F3;
+        }
+        .download-btn {
+            background-color: #ff9800;
+        }
+        .copy-title-btn {
+            background-color: #2196F3;
+            padding: 5px 15px;
+            font-size: 0.9em;
+        }
+        .prompt-container {
+            margin: 10px 0 20px 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+        .prompt-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .prompt-content {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            font-size: 16px;
+        }
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .content::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+        .content {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center">微信文章提取</h1>
+    <div class="input-container">
+        <form method="POST" autocomplete="off">
+            <input type="url" name="url" placeholder="输入微信文章链接" required>
+            <button type="submit">提取</button>
+        </form>
+    </div>
+    
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% if content %}
+    <div class="content-container">
+        <div class="title-container">
+            <div class="title">{{ title }}</div>
+            <button onclick="copyTitle()" class="copy-title-btn">复制标题</button>
+        </div>
+        
+        <div class="prompt-container">
+            <div class="prompt-title">写作提示</div>
+            <textarea class="prompt-content" id="promptText">你是一位顶尖的自媒体文案大师。你洞察人性，擅长用简单通俗的文案吸引人们的注意力，直击人心，读者阅读你的文案时根本停不下来，一口气从头读到尾。
+写作风格要满足下面这些要求:
+-一开头就要立刻吸引住读者，勾起读者的阅读欲望。
+-每段尽量不超过100个字，多分段。不要有一句废话，每句话都必不可少，否则就删除，要么能深深打动读者情感情绪，要么能给读者提供实质性的帮助价值。让人读起来没有卡顿，给人很爽的感觉。
+-模仿范文的核心观点进行升级，更加犀利引起读者共鸣和评论，可以参考各大平台超高阅读量的爆款文章观点，进行加工组合，让观点更加有吸引力，吸引人的眼球。
+-减少使用原文的词语和句子，可以用更加犀利、有吸引力的词语句子替代，或者改变句式换近义词。
+-多使用短语短句，尽量用人们易于理解的口语化白话文口水文，少一些书面用语。用词犀利、震撼又符合实际。
+-写作的角度，就当读者坐在你的对面，像是对他一个人讲述故事一样。读者主要为50岁以上的人群。
+-情感方面，要牢牢抓住读者的情绪，引起情感起伏震撼，最好是能有一些情理之中意料之外的用词和观点。
+-少一些例如啊、呀之类的语气词惊叹词，文字像是平时正常说话一样。
+-文章观点的论据可以进行更加全面生动的阐述，甚至提供一些本文没有但是很有信服力的论据。
+-可以再拓展发散一下故事情节，像短剧一样看着上瘾，让它更有吸引力和震撼性，意料之外又情理之中，让人更加印象深刻。
+下面，请开始创作文章，写一篇文章，要求全文字数2500字以上。标题是：{{ title }}</textarea>
+            <button onclick="copyPrompt()" class="copy-btn" style="margin-top: 10px;">复制提示文本</button>
+        </div>
+
+        <div class="button-group">
+            <button onclick="copyContent()" class="copy-btn">复制正文</button>
+            <button onclick="downloadContent()" class="download-btn">下载文档</button>
+        </div>
+        <div class="content">{{ content }}</div>
+    </div>
+    {% endif %}
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    function copyTitle() {
+        const title = document.querySelector('.title').innerText;
+        navigator.clipboard.writeText(title).then(() => {
+            showToast('已复制标题');
+        }).catch(err => {
+            console.error('复制失败:', err);
+            showToast('复制失败');
+        });
+    }
+
+    function copyContent() {
+        const content = document.querySelector('.content').innerText;
+        navigator.clipboard.writeText(content).then(() => {
+            showToast('已复制正文');
+        }).catch(err => {
+            console.error('复制失败:', err);
+            showToast('复制失败');
+        });
+    }
+
+    function copyPrompt() {
+        const promptText = document.getElementById('promptText').value;
+        navigator.clipboard.writeText(promptText).then(() => {
+            showToast('已复制提示文本');
+        }).catch(err => {
+            console.error('复制失败:', err);
+            showToast('复制失败');
+        });
+    }
+
+    function downloadContent() {
+        const title = document.querySelector('.title').innerText;
+        const content = document.querySelector('.content').innerText;
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/download';
+        
+        const titleInput = document.createElement('input');
+        titleInput.type = 'hidden';
+        titleInput.name = 'title';
+        titleInput.value = title;
+        
+        const contentInput = document.createElement('input');
+        contentInput.type = 'hidden';
+        contentInput.name = 'content';
+        contentInput.value = content;
+        
+        form.appendChild(titleInput);
+        form.appendChild(contentInput);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+    </script>
+</body>
+</html> 
